@@ -3,83 +3,609 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>El Códice - Escritor IA</title>
+    <title>Chronos V4 - SaaS Narrativo</title>
     
-    <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#4ecca3">
-    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3596/3596045.png">
-
+    <link rel="manifest" href="./manifest.json">
+    <meta name="theme-color" content="#4f46e5">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Chronos">
+    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/192/2082/2082856.png">
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Merriweather:ital,wght@0,300;0,400;0,700;1,400&display=swap" rel="stylesheet">
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+    <script type="text/javascript" src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+    
     <style>
-        :root { --bg: #1a1a2e; --container-bg: #16213e; --accent: #4ecca3; --text: #eef; --error: #e94560; }
-        body { font-family: 'Segoe UI', sans-serif; background-color: var(--bg); color: var(--text); display: flex; flex-direction: column; align-items: center; padding: 20px; margin: 0; min-height: 100vh; }
-        .container { background: var(--container-bg); padding: 25px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); width: 100%; max-width: 600px; border: 1px solid #0f3460; box-sizing: border-box; }
-        h1 { color: var(--accent); font-size: 1.4rem; margin-bottom: 15px; text-align: center; }
-        textarea { width: 100%; height: 150px; background: #0f3460; border: 1px solid #1a1a2e; border-radius: 8px; color: white; padding: 15px; font-size: 16px; resize: none; box-sizing: border-box; margin-bottom: 15px; }
-        button { background-color: var(--accent); color: var(--bg); border: none; padding: 14px; border-radius: 8px; cursor: pointer; width: 100%; font-size: 16px; font-weight: bold; transition: 0.3s; }
-        button:active { transform: scale(0.98); }
-        button:disabled { background-color: #2c3e50; color: #7f8c8d; }
-        #response { margin-top: 20px; padding: 15px; background: #0f3460; border-radius: 8px; border-left: 5px solid var(--accent); white-space: pre-wrap; display: none; line-height: 1.6; font-size: 0.95rem; }
-        .error { border-left-color: var(--error); color: var(--error); }
+        /* --- ESTILOS V3.5 (MODERN SAAS - ÍNDIGO & CORAL) --- */
+        :root { 
+            --bg-color: #f8fafc; 
+            --surface: #ffffff;
+            --primary: #4f46e5; 
+            --primary-hover: #4338ca;
+            --accent: #f43f5e; 
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            --radius: 16px; 
+            --tag-personaje: #dbeafe; --tag-lugar: #dcfce7; --tag-trama: #f3e8ff; --tag-epoca: #ffedd5; 
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
+        body { background-color: var(--bg-color); color: var(--text-main); transition: background-color 0.3s; }
+
+        /* HEADER & NAV */
+        .topbar { background: var(--surface); border-bottom: 1px solid var(--border); padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; position: sticky; top:0; z-index: 100; box-shadow: var(--shadow-sm);}
+        .nav-brand { display: flex; align-items: center; gap: 1.5rem; flex-wrap: wrap;}
+        .nav-brand h1 { font-family: 'Merriweather', serif; font-weight: 700; font-size: 1.5rem; color: var(--primary); letter-spacing: -0.5px;}
+        .btn-nav { background: transparent; color: var(--text-muted); border: none; padding: 0.6rem 1rem; cursor: pointer; font-weight: 600; font-size: 0.95rem; border-radius: 8px; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);}
+        .btn-nav:hover { background: #f1f5f9; color: var(--primary); transform: translateY(-1px);}
+        .btn-nav.active { background: #e0e7ff; color: var(--primary); }
+        
+        .actions { display: flex; gap: 0.8rem; align-items: center;}
+        .actions input { padding: 0.6rem 1rem; border-radius: 10px; border: 1px solid var(--border); width: 130px; outline: none; transition: all 0.2s; background: #f8fafc;}
+        .actions input:focus { border-color: var(--primary); background: #fff; box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);}
+        .actions button { padding: 0.6rem 1.2rem; cursor: pointer; background: var(--surface); color: var(--text-main); border: 1px solid var(--border); border-radius: 10px; font-weight: 600; box-shadow: var(--shadow-sm); transition: all 0.2s;}
+        .actions button:hover { border-color: var(--primary); color: var(--primary); transform: translateY(-1px); box-shadow: var(--shadow-md);}
+
+        .container { padding: 2rem; max-width: 1400px; margin: 0 auto; transition: all 0.3s ease;}
+        .view { display: none; }
+        .view.active { display: block; animation: slideUpFade 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        @keyframes slideUpFade { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* BOTONES GLOBALES */
+        .btn-primary { background: var(--primary); color: white; border: none; padding: 0.8rem 1.5rem; border-radius: 10px; cursor: pointer; font-weight: 600; transition: all 0.2s; box-shadow: var(--shadow-md);}
+        .btn-primary:hover { background: var(--primary-hover); transform: translateY(-2px); box-shadow: var(--shadow-lg); }
+        .btn-secondary { background: var(--surface); color: var(--text-main); border: 1px solid var(--border); padding: 0.8rem 1.5rem; border-radius: 10px; cursor: pointer; font-weight: 600; transition: all 0.2s; box-shadow: var(--shadow-sm);}
+        .btn-secondary:hover { background: #f1f5f9; border-color: #cbd5e1; transform: translateY(-1px);}
+        .btn-fab { position: fixed; bottom: 2rem; right: 2rem; background: var(--primary); color: white; padding: 1rem 2rem; border-radius: 50px; border: none; font-weight: 600; cursor: pointer; box-shadow: var(--shadow-lg); font-size: 1rem; z-index: 100; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);}
+        .btn-fab:hover { background: var(--primary-hover); transform: scale(1.05) translateY(-5px); }
+
+        /* KANBAN & TARJETAS */
+        .filter-bar { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; flex-wrap: wrap; align-items: center; padding: 1rem 1.5rem; background: var(--surface); border-radius: var(--radius); border: 1px solid var(--border); box-shadow: var(--shadow-sm);}
+        .filter-bar span { font-size: 0.9rem; font-weight: 600; color: var(--text-muted); margin-right: 0.5rem;}
+        .filter-badge { padding: 0.4rem 1rem; border-radius: 20px; font-size: 0.85rem; font-weight: 600; border: none; cursor: pointer; color: var(--text-main); opacity: 0.5; transition: all 0.2s; box-shadow: var(--shadow-sm);}
+        .filter-badge.active-filter { opacity: 1; transform: scale(1.05); box-shadow: var(--shadow-md); border: 1px solid rgba(0,0,0,0.05);}
+
+        .kanban-board { display: flex; flex-direction: column; gap: 1.5rem; }
+        .kanban-column { background: #f1f5f9; padding: 1.5rem; border-radius: var(--radius); min-height: 200px; flex: 1; border: 1px solid var(--border);}
+        .kanban-column h3 { font-size: 1.1rem; color: var(--text-main); margin-bottom: 1.5rem; font-weight: 700; display: flex; align-items: center; gap: 0.5rem;}
+        .kanban-items { min-height: 150px; display: flex; flex-direction: column; gap: 1rem;}
+        
+        .kanban-card { background: var(--surface); padding: 1.5rem; border-radius: 12px; box-shadow: var(--shadow-sm); cursor: grab; display: flex; justify-content: space-between; align-items: center; border: 1px solid var(--border); transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);}
+        .kanban-card:hover { transform: translateY(-4px) scale(1.01); box-shadow: var(--shadow-md); border-color: #cbd5e1;}
+        .kanban-card button { background: #f1f5f9; color: var(--text-main); border: none; cursor: pointer; font-size: 1.2rem; width: 36px; height: 36px; border-radius: 8px; transition: all 0.2s; display: flex; justify-content: center; align-items: center;}
+        .kanban-card button:hover { background: var(--primary); color: white; transform: scale(1.1);}
+
+        /* EDITOR V3.5 */
+        .editor-header { display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem; flex-wrap: wrap; background: var(--surface); padding: 1rem 1.5rem; border-radius: var(--radius); border: 1px solid var(--border); box-shadow: var(--shadow-sm); transition: all 0.3s;}
+        .editor-header input { flex-grow: 1; padding: 0.5rem; font-size: 1.6rem; border: none; outline: none; font-family: 'Merriweather', serif; font-weight: 700; color: var(--text-main); background: transparent;}
+        .editor-header input::placeholder { color: #cbd5e1; }
+        
+        .btn-icon { background: #f1f5f9; border: none; border-radius: 12px; width: 48px; height: 48px; cursor: pointer; font-size: 1.2rem; display: flex; justify-content: center; align-items: center; transition: all 0.2s; box-shadow: var(--shadow-sm);}
+        .btn-icon:hover { background: #e2e8f0; transform: translateY(-2px);}
+        .btn-mic.recording { background: var(--accent); color: white; animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(244, 63, 94, 0.4); } 70% { box-shadow: 0 0 0 15px rgba(244, 63, 94, 0); } 100% { box-shadow: 0 0 0 0 rgba(244, 63, 94, 0); } }
+
+        .editor-workspace { display: flex; flex-direction: column; gap: 1.5rem; transition: all 0.3s;}
+        .editor-main { flex: 3; display: flex; flex-direction: column; background: var(--surface); border-radius: var(--radius); border: 1px solid var(--border); overflow: hidden; box-shadow: var(--shadow-md); transition: all 0.3s;}
+        
+        #quill-editor { height: 70vh; background: white; border: none; font-size: 1.15rem; transition: all 0.3s;}
+        .ql-editor { font-family: 'Merriweather', serif; line-height: 1.9; color: #334155; padding: 3rem 4rem;}
+        .ql-toolbar.ql-snow { border: none; border-bottom: 1px solid var(--border); background: #f8fafc; padding: 1rem;}
+
+        .editor-sidebar { flex: 1; background: var(--surface); padding: 1.5rem; border-radius: var(--radius); border: 1px solid var(--border); max-height: 70vh; overflow-y: auto; box-shadow: var(--shadow-sm); transition: all 0.3s;}
+        .sidebar-tabs { display: flex; border-bottom: 1px solid var(--border); margin-bottom: 1.5rem; }
+        .side-tab { flex:1; background:none; border:none; padding:0.8rem; cursor:pointer; font-weight:600; color:var(--text-muted); border-bottom: 3px solid transparent; transition: all 0.2s;}
+        .side-tab.active { color: var(--primary); border-bottom-color: var(--primary); }
+        .side-tab:hover:not(.active) { color: var(--text-main); background: #f8fafc;}
+
+        /* AUTOCOMPLETE */
+        .autocomplete-wrapper { position: relative; width: 100%; margin-bottom: 1.5rem; }
+        .autocomplete-input { width: 100%; padding: 0.8rem 1.2rem; border-radius: 10px; border: 1px solid var(--border); font-size: 0.95rem; outline: none; transition: all 0.2s; background: #f8fafc; font-weight: 500;}
+        .autocomplete-input:focus { border-color: var(--primary); background: #fff; box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1); }
+        .autocomplete-list { position: absolute; top: 100%; left: 0; right: 0; background: #fff; border: 1px solid var(--border); border-radius: 10px; margin-top: 0.5rem; max-height: 250px; overflow-y: auto; box-shadow: var(--shadow-lg); z-index: 50; display: none; }
+        .autocomplete-item { padding: 0.8rem 1.2rem; cursor: pointer; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; transition: background 0.1s;}
+        .autocomplete-item:hover { background: #f1f5f9; }
+        .tag-badge-small { font-size: 0.7rem; padding: 0.3rem 0.6rem; border-radius: 12px; color: #1e293b; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;}
+
+        .tags-container { display: flex; flex-wrap: wrap; gap: 0.6rem; }
+        .tag-badge { padding: 0.5rem 1rem; border-radius: 20px; font-size: 0.85rem; display: flex; align-items: center; gap: 0.6rem; font-weight: 600; color: #1e293b; box-shadow: var(--shadow-sm); animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);}
+        @keyframes popIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        .tag-badge button { background: rgba(0,0,0,0.05); border: none; border-radius: 50%; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-weight: bold; font-size: 0.9rem; transition: background 0.2s;}
+        .tag-badge button:hover { background: rgba(0,0,0,0.15); }
+        
+        .bg-personaje { background-color: var(--tag-personaje); } .bg-lugar { background-color: var(--tag-lugar); } .bg-trama { background-color: var(--tag-trama); } .bg-epoca { background-color: var(--tag-epoca); }
+
+        /* MODO ZEN */
+        body.zen-mode .topbar, body.zen-mode #vista-kanban, body.zen-mode #vista-worldbuilding, body.zen-mode #vista-lineatiempo, body.zen-mode #vista-indice, body.zen-mode #vista-grafo, body.zen-mode .editor-sidebar, body.zen-mode .editor-header { display: none !important; }
+        body.zen-mode .container { padding: 0; max-width: 100%; margin: 0; }
+        body.zen-mode #vista-editor { display: block; height: 100vh; width: 100vw; background: var(--surface);}
+        body.zen-mode .editor-workspace { gap: 0; }
+        body.zen-mode .editor-main { border-radius: 0; border: none; box-shadow: none; height: 100vh; }
+        body.zen-mode #quill-editor { height: 100vh; padding: 2rem 5%; font-size: 1.25rem;}
+        body.zen-mode .ql-toolbar.ql-snow { border-bottom: 1px solid #f1f5f9; background: white; padding: 0.5rem 5%; display: flex; justify-content: center;}
+        
+        .zen-floating-tools { display: none; position: fixed; bottom: 2rem; right: 2rem; gap: 1rem; z-index: 9999; }
+        body.zen-mode .zen-floating-tools { display: flex; animation: slideUpFade 0.4s ease forwards;}
+        .zen-btn { background: rgba(255,255,255,0.9); backdrop-filter: blur(4px); border: 1px solid var(--border); border-radius: 50px; padding: 1rem; cursor: pointer; font-size: 1.5rem; box-shadow: var(--shadow-lg); transition: all 0.2s;}
+        .zen-btn:hover { transform: scale(1.1); background: white;}
+        .zen-btn.recording { background: var(--accent); color: white; border-color: var(--accent); animation: pulse 1.5s infinite;}
+
+        /* WORLDBUILDING */
+        .wb-layout { display: flex; flex-direction: column; gap: 1.5rem; margin-top: 1rem; }
+        .wb-sidebar { display: flex; flex-direction: row; gap: 0.5rem; overflow-x: auto; padding-bottom: 0.5rem; }
+        .wb-tab { background: transparent; border: none; padding: 0.8rem 1.2rem; border-radius: 10px; cursor: pointer; white-space: nowrap; font-weight: 600; color: var(--text-muted); transition: all 0.2s;}
+        .wb-tab:hover { background: #f1f5f9; color: var(--text-main);}
+        .wb-tab.active { background: var(--surface); color: var(--primary); box-shadow: var(--shadow-sm); border: 1px solid var(--border);}
+        
+        .wb-content { flex: 1; background: var(--surface); padding: 2rem; border-radius: var(--radius); border: 1px solid var(--border); box-shadow: var(--shadow-sm); }
+        .wb-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; border-bottom: 1px solid var(--border); padding-bottom: 1rem;}
+        
+        .wb-form-card { background: #f8fafc; padding: 1.5rem; border-radius: 12px; margin-bottom: 1.5rem; border: 1px solid var(--border); display: flex; flex-direction: column; gap: 1rem; }
+        .wb-form-card input, .wb-form-card textarea, .wb-form-card select { padding: 0.8rem 1.2rem; border: 1px solid var(--border); border-radius: 10px; width: 100%; outline:none; transition: all 0.2s; font-size: 0.95rem; background: white;}
+        .wb-form-card input:focus, .wb-form-card textarea:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1); }
+        
+        .wb-list { list-style: none; display: flex; flex-direction: column; gap: 0.8rem; }
+        .wb-list li { display: flex; justify-content: space-between; align-items: center; background: white; padding: 1.2rem; border: 1px solid var(--border); border-radius: 12px; transition: all 0.2s; box-shadow: var(--shadow-sm);}
+        .wb-list li:hover { transform: translateX(5px); border-color: var(--primary); box-shadow: var(--shadow-md);}
+        .wb-list li button { background: #f1f5f9; border: none; cursor: pointer; font-size: 1.2rem; width: 40px; height: 40px; border-radius: 10px; transition: all 0.2s; display: flex; justify-content: center; align-items: center;}
+        .wb-list li button:hover { background: var(--primary); color: white; }
+
+        .timeline-container { position: relative; max-width: 800px; margin: 2rem auto; padding: 1rem 0;}
+        .timeline-container::after { content: ''; position: absolute; width: 2px; background-color: var(--border); top: 0; bottom: 0; left: 20px; }
+        .timeline-item { padding: 10px 20px 10px 50px; position: relative; width: 100%; }
+        .timeline-item::after { content: ''; position: absolute; width: 12px; height: 12px; right: auto; background-color: var(--surface); border: 3px solid var(--accent); top: 20px; left: 15px; border-radius: 50%; z-index: 1; }
+        .timeline-content { padding: 1.5rem; background: var(--surface); border-radius: 8px; box-shadow: var(--shadow-sm); border: 1px solid var(--border); }
+        .timeline-epoch { font-weight: 600; color: var(--accent); display: inline-block; margin-bottom: 0.5rem; font-size: 0.85rem; letter-spacing: 1px; text-transform: uppercase;}
+
+        @media (min-width: 768px) {
+            .kanban-board { flex-direction: row; }
+            .editor-workspace { flex-direction: row; }
+            .wb-layout { flex-direction: row; }
+            .wb-sidebar { flex-direction: column; width: 220px; }
+        }
     </style>
 </head>
 <body>
+    <header class="topbar">
+        <div class="nav-brand">
+            <h1>Chronos</h1>
+            <button class="btn-nav active" onclick="navegar('vista-kanban', this)">Tablero</button>
+            <button class="btn-nav" onclick="navegar('vista-worldbuilding', this); seleccionarCategoriaWB('Personajes');">Worldbuilding</button>
+            <button class="btn-nav" onclick="navegar('vista-lineatiempo', this); renderizarLineaTiempo();">Línea de Tiempo</button>
+            <button class="btn-nav" onclick="navegar('vista-indice', this); renderizarIndice();">Compilador 📚</button>
+            <button class="btn-nav" onclick="navegar('vista-grafo', this); renderizarGrafo();">Red 🕸️</button>
+        </div>
+        <div class="actions">
+            <input type="password" id="pin-input" placeholder="PIN" value="1234">
+            <button onclick="cargarDatosIniciales()" id="btn-sync">Sincronizar Nube</button>
+        </div>
+    </header>
 
-    <div class="container">
-        <h1>El Códice - Auxiliar de Escritura</h1>
-        <textarea id="promptInput" placeholder="Describe una escena o consulta una regla de tu mundo..."></textarea>
-        <button id="btnAsk">Consultar a la IA</button>
-        <div id="response"></div>
-    </div>
+    <main class="container">
+        <section id="vista-kanban" class="view active">
+            <div class="filter-bar" id="kanban-filters"><span>Filtros (AND):</span></div>
+            <div class="kanban-board">
+                <div class="kanban-column" id="col-ideas"><h3>💡 Ideas</h3><div class="kanban-items" data-estado="Ideas"></div></div>
+                <div class="kanban-column" id="col-borrador"><h3>📝 Borrador</h3><div class="kanban-items" data-estado="Borrador"></div></div>
+                <div class="kanban-column" id="col-finalizado"><h3>✅ Finalizado</h3><div class="kanban-items" data-estado="Finalizado"></div></div>
+            </div>
+            <button class="btn-fab" onclick="nuevoCapitulo()">+ Nuevo Capítulo</button>
+        </section>
 
+        <section id="vista-editor" class="view">
+            <div class="editor-header">
+                <button class="btn-secondary" onclick="navegar('vista-kanban')">⬅ Volver</button>
+                <input type="text" id="capitulo-titulo" placeholder="Título del Capítulo...">
+                <button class="btn-icon" onclick="toggleZenMode()" title="Modo Zen (Escritura Inmersiva)">👁️</button>
+                <button class="btn-icon btn-mic" id="btn-dictado" onclick="toggleDictado()" title="Dictado por Voz (Ctrl + Espacio)">🎤</button>
+                <button class="btn-primary" onclick="guardarCapituloActual()" id="btn-save-cap">💾 Guardar</button>
+            </div>
+            
+            <div class="editor-workspace">
+                <div class="editor-main"><div id="quill-editor"></div></div>
+                <aside class="editor-sidebar">
+                    <div class="sidebar-tabs">
+                        <button class="side-tab active" onclick="cambiarTabEditor('tab-etiquetas', this)">🏷️ Etiquetas</button>
+                        <button class="side-tab" onclick="cambiarTabEditor('tab-analiticas', this)">📊 Analíticas</button>
+                    </div>
+
+                    <div id="tab-etiquetas" class="side-content active">
+                        <div class="autocomplete-wrapper">
+                            <input type="text" id="tag-autocomplete" class="autocomplete-input" placeholder="Buscar personaje, lugar, época..." autocomplete="off">
+                            <div id="autocomplete-list" class="autocomplete-list"></div>
+                        </div>
+                        <div class="tags-container" id="contenedor-etiquetas"></div>
+                    </div>
+
+                    <div id="tab-analiticas" class="side-content" style="display:none;">
+                        <button class="btn-primary" style="width:100%; margin-bottom:1.5rem;" onclick="calcularAnaliticas()">🔄 Calcular Analíticas</button>
+                        <div id="panel-metricas" style="display:flex; flex-direction:column; gap:1rem;">
+                            <p style="color:var(--text-muted); font-size:0.9rem; text-align:center;">Presiona el botón para analizar el texto usando NLP.</p>
+                        </div>
+                    </div>
+                </aside>
+            </div>
+        </section>
+
+        <div class="zen-floating-tools">
+            <button class="zen-btn btn-mic-zen" onclick="toggleDictado()" title="Dictado por Voz">🎤</button>
+            <button class="zen-btn" onclick="toggleZenMode()" title="Salir del Modo Zen">❌</button>
+        </div>
+
+        <section id="vista-indice" class="view">
+            <div class="wb-layout">
+                <div class="wb-content" style="max-width: 800px; margin: 0 auto; width: 100%;">
+                    <div class="wb-header">
+                        <h3>Orden de Lectura (Capítulos Finalizados)</h3>
+                        <div style="display:flex; gap:0.5rem;">
+                            <button class="btn-secondary" onclick="guardarOrdenIndice()" id="btn-save-order">Guardar Orden</button>
+                            <button class="btn-primary" onclick="exportarLibro()" id="btn-exportar">📚 Exportar HTML</button>
+                        </div>
+                    </div>
+                    <ul id="indice-lista" class="wb-list" style="cursor: grab;"></ul>
+                </div>
+            </div>
+        </section>
+
+        <section id="vista-worldbuilding" class="view">
+            <div class="wb-layout">
+                <aside class="wb-sidebar">
+                    <button class="wb-tab active" onclick="seleccionarCategoriaWB('Personajes', this)">👤 Personajes</button>
+                    <button class="wb-tab" onclick="seleccionarCategoriaWB('Almas', this)">✨ Linajes</button>
+                    <button class="wb-tab" onclick="seleccionarCategoriaWB('Lugar', this)">📍 Lugares</button>
+                    <button class="wb-tab" onclick="seleccionarCategoriaWB('Trama', this)">📜 Tramas</button>
+                    <button class="wb-tab" onclick="seleccionarCategoriaWB('Epoca', this)">⏳ Épocas</button>
+                </aside>
+                <div class="wb-content">
+                    <div class="wb-header">
+                        <h3 id="wb-titulo-categoria" style="color: var(--primary); font-size: 1.3rem;">Personajes</h3>
+                        <button class="btn-primary" onclick="nuevaEntidad()">+ Crear Nuevo</button>
+                    </div>
+                    <div id="wb-formulario" style="display: none;" class="wb-form-card">
+                        <input type="hidden" id="wb-id">
+                        <input type="text" id="wb-nombre" placeholder="Nombre / Título">
+                        <select id="wb-alma" style="display:none;"><option value="">-- Vincular a un Linaje (Opcional) --</option></select>
+                        <input type="text" id="wb-extra" placeholder="Dato Extra" style="display:none;">
+                        <input type="text" id="wb-apodos" placeholder="Apodos (separados por coma. Ej: El Rey, Mago)" style="display:none;">
+                        <textarea id="wb-descripcion" placeholder="Descripción / Biografía" rows="4"></textarea>
+                        <div style="display: flex; justify-content: flex-end; gap: 0.8rem; margin-top: 0.5rem;">
+                            <button class="btn-secondary" onclick="cancelarEdicion()">Cancelar</button>
+                            <button class="btn-primary" onclick="guardarEntidad()" id="btn-save-wb">Guardar</button>
+                        </div>
+                    </div>
+                    <ul id="wb-lista" class="wb-list"></ul>
+                </div>
+            </div>
+        </section>
+
+        <section id="vista-lineatiempo" class="view"><div class="timeline-container" id="timeline-render"></div></section>
+        <section id="vista-grafo" class="view">
+            <div class="wb-layout">
+                <div class="wb-content" style="width: 100%;">
+                    <div class="wb-header">
+                        <h3>Grafo de Relaciones del Universo</h3>
+                    </div>
+                    <div id="network-container" style="width: 100%; height: 75vh; border: 1px solid var(--border); border-radius: var(--radius); background: #f8fafc; box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.03);"></div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+    <script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
+    
     <script>
-        const API_KEY = "AIzaSyBUM5TWtx0-YOlatjexIs3ehLw58vwDPBk";
-        const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`;
+        const API_URL = "https://script.google.com/macros/s/AKfycbzx9No5Vrs2xfgrIBp0ysIltY3wwD_rvLVrqhDpkVmszwyEKz3WsUeGWDEH4sb4l2f9/exec"; 
+        let DB = { capitulos: [], personajes: [], enciclopedia: [], lineaTiempo: [], almas: [] };
+        let capituloActivoId = null; let capituloActivoFileId = null; let etiquetasActuales = []; 
+        let categoriaActivaWB = 'Personajes'; let activeFilters = [];
 
-        const btn = document.getElementById('btnAsk');
-        const input = document.getElementById('promptInput');
-        const responseDiv = document.getElementById('response');
+        const quill = new Quill('#quill-editor', { theme: 'snow', placeholder: 'Comienza tu manuscrito épico...' });
 
-        btn.addEventListener('click', async () => {
-            const prompt = input.value.trim();
-            if (!prompt) return;
-
-            btn.disabled = true;
-            btn.innerText = "Pensando...";
-            responseDiv.style.display = 'none';
-            responseDiv.classList.remove('error');
-
-            try {
-                const response = await fetch(API_URL, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
-                });
-
-                const data = await response.json();
-                if (data.error) throw new Error(data.error.message);
-
-                if (data.candidates && data.candidates[0].content.parts[0].text) {
-                    responseDiv.innerText = data.candidates[0].content.parts[0].text;
-                    responseDiv.style.display = 'block';
-                }
-            } catch (error) {
-                responseDiv.innerText = "⚠️ Error: " + error.message;
-                responseDiv.classList.add('error');
-                responseDiv.style.display = 'block';
-            } finally {
-                btn.disabled = false;
-                btn.innerText = "Consultar a la IA";
-            }
-        });
-
-        // REGISTRO DEL SERVICE WORKER PARA PWA
+        // === REGISTRO DEL SERVICE WORKER (PWA) ===
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('./sw.js')
-                .then(reg => console.log('PWA lista'))
-                .catch(err => console.log('Error de PWA', err));
+                .then(reg => console.log('Service Worker registrado con éxito.', reg.scope))
+                .catch(err => console.error('Error al registrar el Service Worker:', err));
             });
         }
+
+        function toggleZenMode() { document.body.classList.toggle('zen-mode'); }
+
+        const inputBusqueda = document.getElementById('tag-autocomplete');
+        const listaResultados = document.getElementById('autocomplete-list');
+
+        function obtenerEntidadesUnificadas() {
+            let entidades = [];
+            DB.personajes.forEach(p => entidades.push({ entidad: p.Nombre, categoria: 'Personaje', extra: p.Epoca || '' }));
+            DB.lineaTiempo.forEach(e => entidades.push({ entidad: e.Epoca + " - " + e.Titulo, categoria: 'Epoca', extra: '' }));
+            DB.enciclopedia.forEach(e => entidades.push({ entidad: e.Nombre, categoria: e.Categoria, extra: '' }));
+            return entidades.filter(e => e.entidad); 
+        }
+
+        inputBusqueda.addEventListener('input', function() {
+            const valor = this.value.toLowerCase(); listaResultados.innerHTML = '';
+            if (!valor) { listaResultados.style.display = 'none'; return; }
+            const entidades = obtenerEntidadesUnificadas();
+            const filtrados = entidades.filter(e => e.entidad.toLowerCase().includes(valor));
+
+            if (filtrados.length > 0) {
+                filtrados.slice(0, 10).forEach(item => { 
+                    const div = document.createElement('div'); div.className = 'autocomplete-item';
+                    div.innerHTML = `<span style="font-weight:600; color:var(--text-main);">${item.entidad}</span><span class="tag-badge-small bg-${item.categoria.toLowerCase()}">${item.categoria}</span>`;
+                    div.onclick = () => { agregarEtiqueta(item.categoria, item.entidad); inputBusqueda.value = ''; listaResultados.style.display = 'none'; };
+                    listaResultados.appendChild(div);
+                });
+                listaResultados.style.display = 'block';
+            } else {
+                listaResultados.innerHTML = `<div class="autocomplete-item" style="color:var(--text-muted); justify-content:center;">No se encontraron resultados</div>`;
+                listaResultados.style.display = 'block';
+            }
+        });
+
+        document.addEventListener('click', function(e) { if (e.target !== inputBusqueda && e.target !== listaResultados) listaResultados.style.display = 'none'; });
+
+        function agregarEtiqueta(cat, ent) {
+            if(cat && ent && !etiquetasActuales.some(e => e.entidad === ent && e.categoria === cat)) { etiquetasActuales.push({ categoria: cat, entidad: ent }); renderizarEtiquetas(); }
+        }
+        function eliminarEtiqueta(index) { etiquetasActuales.splice(index, 1); renderizarEtiquetas(); }
+        function renderizarEtiquetas() {
+            const cont = document.getElementById('contenedor-etiquetas'); cont.innerHTML = '';
+            etiquetasActuales.forEach((e, i) => {
+                const span = document.createElement('span'); span.className = `tag-badge bg-${e.categoria.toLowerCase()}`;
+                span.innerHTML = `${e.entidad} <button onclick="eliminarEtiqueta(${i})">×</button>`; cont.appendChild(span);
+            });
+        }
+
+        let recognition; let isRecording = false;
+        if ('webkitSpeechRecognition' in window) {
+            recognition = new webkitSpeechRecognition(); recognition.continuous = true; recognition.interimResults = false; recognition.lang = 'es-ES';
+            recognition.onstart = function() { isRecording = true; document.getElementById('btn-dictado').classList.add('recording'); document.querySelector('.btn-mic-zen').classList.add('recording'); };
+            recognition.onresult = function(event) {
+                let transcript = ''; for (let i = event.resultIndex; i < event.results.length; ++i) transcript += event.results[i][0].transcript;
+                const range = quill.getSelection(true); quill.insertText(range.index, transcript + ' '); quill.setSelection(range.index + transcript.length + 1);
+            };
+            recognition.onend = function() { isRecording = false; document.getElementById('btn-dictado').classList.remove('recording'); document.querySelector('.btn-mic-zen').classList.remove('recording'); };
+        }
+        document.addEventListener('keydown', function(e) { if (e.ctrlKey && e.code === 'Space') { e.preventDefault(); if(document.getElementById('vista-editor').classList.contains('active')) toggleDictado(); } });
+        function toggleDictado() { if(!recognition) return alert('El dictado requiere Google Chrome.'); if (isRecording) { recognition.stop(); } else { recognition.start(); } }
+
+        async function fetchAPI(action, data = {}) {
+            const pin = document.getElementById('pin-input').value;
+            try {
+                const response = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ pin, action, data }), headers: { 'Content-Type': 'text/plain;charset=utf-8' } });
+                const result = await response.json(); if(!result.success) throw new Error(result.error); return result.data;
+            } catch (error) { alert("Error de conexión. ¿Estás Offline? \n\n" + error.message); return null; }
+        }
+
+        async function cargarDatosIniciales() {
+            const btn = document.getElementById('btn-sync'); btn.textContent = "Sincronizando..."; btn.disabled = true;
+            const data = await fetchAPI("getInitialData");
+            if(data) {
+                DB = data; renderizarKanban(); renderizarFiltros(); 
+                if(document.getElementById('vista-worldbuilding').classList.contains('active')) renderizarListaWB();
+                if(document.getElementById('vista-lineatiempo').classList.contains('active')) renderizarLineaTiempo();
+                if(document.getElementById('vista-indice').classList.contains('active')) renderizarIndice();
+                if(document.getElementById('vista-grafo').classList.contains('active')) renderizarGrafo();
+            }
+            btn.textContent = "Sincronizar Nube"; btn.disabled = false;
+        }
+
+        function navegar(idVista, btnElement = null) {
+            document.querySelectorAll('.view').forEach(v => v.classList.remove('active')); document.getElementById(idVista).classList.add('active');
+            if(btnElement) { document.querySelectorAll('.btn-nav').forEach(b => b.classList.remove('active')); btnElement.classList.add('active'); } 
+            else { document.querySelectorAll('.btn-nav').forEach(b => b.classList.remove('active')); document.querySelector('.btn-nav[onclick*="vista-kanban"]').classList.add('active'); }
+        }
+
+        document.querySelectorAll('.kanban-items').forEach(columna => { new Sortable(columna, { group: 'shared', animation: 150, onEnd: function (evt) { const id = evt.item.getAttribute('data-id'); actualizarEstadoKanban(id, evt.to.getAttribute('data-estado')); }}); });
+
+        function renderizarFiltros() {
+            const tagSet = new Set(); DB.capitulos.forEach(cap => { try { const tags = cap.Etiquetas_JSON ? JSON.parse(cap.Etiquetas_JSON) : []; tags.forEach(t => tagSet.add(JSON.stringify(t))); } catch(e) {} });
+            const filterContainer = document.getElementById('kanban-filters'); filterContainer.innerHTML = '<span style="color:var(--primary);">Filtros (AND):</span>';
+            tagSet.forEach(tagStr => {
+                const tag = JSON.parse(tagStr); const btn = document.createElement('button'); btn.className = `filter-badge bg-${tag.categoria.toLowerCase()}`; btn.textContent = tag.entidad;
+                if(activeFilters.some(af => af.entidad === tag.entidad && af.categoria === tag.categoria)) btn.classList.add('active-filter');
+                btn.onclick = () => toggleFilter(tag, btn); filterContainer.appendChild(btn);
+            });
+            aplicarFiltrosKanban(); 
+        }
+
+        function toggleFilter(tag, btn) {
+            const index = activeFilters.findIndex(f => f.entidad === tag.entidad && f.categoria === tag.categoria);
+            if(index > -1) { activeFilters.splice(index, 1); btn.classList.remove('active-filter'); } else { activeFilters.push(tag); btn.classList.add('active-filter'); }
+            aplicarFiltrosKanban();
+        }
+
+        function aplicarFiltrosKanban() {
+            document.querySelectorAll('.kanban-card').forEach(card => {
+                const capId = card.getAttribute('data-id'); const cap = DB.capitulos.find(c => c.ID == capId); let capTags = [];
+                try { capTags = cap.Etiquetas_JSON ? JSON.parse(cap.Etiquetas_JSON) : []; } catch(e){}
+                const cumpleFiltro = activeFilters.every(af => capTags.some(ct => ct.entidad === af.entidad && ct.categoria === af.categoria));
+                card.style.display = (activeFilters.length === 0 || cumpleFiltro) ? 'flex' : 'none';
+            });
+        }
+
+        function renderizarKanban() {
+            document.querySelectorAll('.kanban-items').forEach(el => el.innerHTML = '');
+            DB.capitulos.forEach(cap => {
+                const estado = cap.Estado_Kanban || 'Ideas'; const contenedor = document.querySelector(`.kanban-items[data-estado="${estado}"]`);
+                if(contenedor) {
+                    const card = document.createElement('div'); card.className = 'kanban-card'; card.setAttribute('data-id', cap.ID);
+                    card.innerHTML = `<span><strong style="color:var(--text-main); font-size:1.05rem;">${cap.Titulo || 'Sin título'}</strong></span><button onclick="abrirEditor('${cap.ID}')">✏️</button>`;
+                    contenedor.appendChild(card);
+                }
+            });
+            aplicarFiltrosKanban(); 
+        }
+
+        function actualizarEstadoKanban(id, nuevoEstado) { const capitulo = DB.capitulos.find(c => c.ID == id); if(capitulo) { capitulo.Estado_Kanban = nuevoEstado; fetchAPI("saveCapitulo", capitulo); } }
+
+        function nuevoCapitulo() {
+            capituloActivoId = null; capituloActivoFileId = null; document.getElementById('capitulo-titulo').value = ''; quill.root.innerHTML = ''; etiquetasActuales = [];
+            renderizarEtiquetas(); navegar('vista-editor'); cambiarTabEditor('tab-etiquetas', document.querySelector('.side-tab'));
+        }
+
+        async function abrirEditor(id) {
+            const capitulo = DB.capitulos.find(c => c.ID == id); if(!capitulo) return;
+            capituloActivoId = capitulo.ID; capituloActivoFileId = capitulo.Contenido_HTML; document.getElementById('capitulo-titulo').value = capitulo.Titulo;
+            try { etiquetasActuales = capitulo.Etiquetas_JSON ? JSON.parse(capitulo.Etiquetas_JSON) : []; } catch(e) { etiquetasActuales = []; }
+            renderizarEtiquetas(); navegar('vista-editor'); cambiarTabEditor('tab-etiquetas', document.querySelector('.side-tab'));
+
+            quill.root.innerHTML = '<p style="color:var(--text-muted); font-style:italic; text-align:center;">⏳ Descargando manuscrito...</p>'; quill.disable();
+            const htmlReal = await fetchAPI("getCapituloContent", { fileId: capituloActivoFileId }); quill.root.innerHTML = htmlReal || ''; quill.enable();
+        }
+
+        async function guardarCapituloActual() {
+            const btn = document.getElementById('btn-save-cap'); btn.textContent = "Guardando..."; btn.disabled = true;
+            const capituloData = { ID: capituloActivoId || "", Titulo: document.getElementById('capitulo-titulo').value, Contenido_HTML: capituloActivoFileId || "", Raw_HTML: quill.root.innerHTML, Estado_Kanban: capituloActivoId ? undefined : "Ideas", Etiquetas_JSON: JSON.stringify(etiquetasActuales) };
+            const exito = await fetchAPI("saveCapitulo", capituloData);
+            if(exito) { await cargarDatosIniciales(); navegar('vista-kanban'); }
+            btn.textContent = "💾 Guardar"; btn.disabled = false;
+        }
+
+        function seleccionarCategoriaWB(categoria, btnElement = null) {
+            categoriaActivaWB = categoria; document.querySelectorAll('.wb-tab').forEach(t => t.classList.remove('active'));
+            if(btnElement) btnElement.classList.add('active'); else { const tab = document.querySelector(`.wb-tab[onclick*="'${categoria}'"]`); if(tab) tab.classList.add('active'); }
+            document.getElementById('wb-titulo-categoria').textContent = categoria; document.getElementById('wb-formulario').style.display = 'none'; renderizarListaWB();
+        }
+
+        function renderizarListaWB() {
+            const lista = document.getElementById('wb-lista'); lista.innerHTML = ''; let datos = [];
+            if(categoriaActivaWB === 'Personajes') datos = DB.personajes; else if(categoriaActivaWB === 'Almas') datos = DB.almas; else if(categoriaActivaWB === 'Epoca') datos = DB.lineaTiempo; else datos = DB.enciclopedia.filter(e => e.Categoria === categoriaActivaWB);
+            datos.forEach(item => {
+                const li = document.createElement('li'); const nombre = item.Nombre || item.Titulo || 'Sin nombre';
+                li.innerHTML = `<span><strong style="color:var(--text-main); font-size:1.05rem;">${nombre}</strong> ${item.Epoca ? `<span style="color:var(--accent); font-size:0.85rem; margin-left:0.5rem; font-weight:600;">(${item.Epoca})</span>` : ''}</span><button onclick="editarEntidad('${item.ID}')">✏️</button>`;
+                lista.appendChild(li);
+            });
+        }
+
+        function nuevaEntidad() {
+            document.getElementById('wb-id').value = ''; document.getElementById('wb-nombre').value = ''; document.getElementById('wb-descripcion').value = '';
+            const extra = document.getElementById('wb-extra'); const selectAlma = document.getElementById('wb-alma'); const inputApodos = document.getElementById('wb-apodos');
+            extra.style.display = 'none'; selectAlma.style.display = 'none'; inputApodos.style.display = 'none';
+            if(categoriaActivaWB === 'Personajes') { extra.style.display = 'block'; extra.placeholder = 'Época / Año (Ej. 1800)'; extra.value = ''; selectAlma.style.display = 'block'; llenarSelectAlmas(); selectAlma.value = ''; inputApodos.style.display = 'block'; inputApodos.value = ''; } 
+            else if(categoriaActivaWB === 'Epoca') { extra.style.display = 'block'; extra.placeholder = 'Año Cronológico (Ej. 1920)'; extra.value = ''; }
+            document.getElementById('wb-formulario').style.display = 'flex';
+        }
+
+        function llenarSelectAlmas() {
+            const select = document.getElementById('wb-alma'); select.innerHTML = '<option value="">-- Vincular a un Linaje (Opcional) --</option>';
+            DB.almas.forEach(alma => { const opt = document.createElement('option'); opt.value = alma.ID; opt.textContent = alma.Nombre; select.appendChild(opt); });
+        }
+
+        function editarEntidad(id) {
+            nuevaEntidad(); let item;
+            if(categoriaActivaWB === 'Personajes') item = DB.personajes.find(i => i.ID == id); else if(categoriaActivaWB === 'Almas') item = DB.almas.find(i => i.ID == id); else if(categoriaActivaWB === 'Epoca') item = DB.lineaTiempo.find(i => i.ID == id); else item = DB.enciclopedia.find(i => i.ID == id);
+            if(!item) return;
+            document.getElementById('wb-id').value = item.ID; document.getElementById('wb-nombre').value = item.Nombre || item.Titulo; document.getElementById('wb-descripcion').value = item.Biografia || item.Descripcion || '';
+            if(categoriaActivaWB === 'Personajes') { document.getElementById('wb-extra').value = item.Epoca || ''; document.getElementById('wb-alma').value = item.Alma_ID || ''; document.getElementById('wb-apodos').value = item.Apodos || ''; } 
+            else if(categoriaActivaWB === 'Epoca') { document.getElementById('wb-extra').value = item.Epoca || ''; }
+        }
+
+        async function guardarEntidad() {
+            const btn = document.getElementById('btn-save-wb'); btn.textContent = 'Guardando...'; btn.disabled = true;
+            const itemData = { ID: document.getElementById('wb-id').value }; let sheetName = "";
+            if(categoriaActivaWB === 'Personajes') { sheetName = "Personajes"; itemData.Nombre = document.getElementById('wb-nombre').value; itemData.Biografia = document.getElementById('wb-descripcion').value; itemData.Epoca = document.getElementById('wb-extra').value; itemData.Alma_ID = document.getElementById('wb-alma').value; itemData.Apodos = document.getElementById('wb-apodos').value; } 
+            else if (categoriaActivaWB === 'Almas') { sheetName = "Almas"; itemData.Nombre = document.getElementById('wb-nombre').value; itemData.Descripcion = document.getElementById('wb-descripcion').value; } 
+            else if(categoriaActivaWB === 'Epoca') { sheetName = "Linea_Tiempo"; itemData.Titulo = document.getElementById('wb-nombre').value; itemData.Descripcion = document.getElementById('wb-descripcion').value; itemData.Epoca = document.getElementById('wb-extra').value; } 
+            else { sheetName = "Enciclopedia"; itemData.Nombre = document.getElementById('wb-nombre').value; itemData.Descripcion = document.getElementById('wb-descripcion').value; itemData.Categoria = categoriaActivaWB; }
+            const exito = await fetchAPI("saveEntidad", { sheet: sheetName, item: itemData });
+            if(exito) { await cargarDatosIniciales(); seleccionarCategoriaWB(categoriaActivaWB); }
+            btn.textContent = 'Guardar'; btn.disabled = false;
+        }
+        function cancelarEdicion() { document.getElementById('wb-formulario').style.display = 'none'; }
+
+        function renderizarIndice() {
+            const container = document.getElementById('indice-lista'); container.innerHTML = '';
+            let finalizados = DB.capitulos.filter(c => c.Estado_Kanban === 'Finalizado'); finalizados.sort((a, b) => (Number(a.Orden) || 0) - (Number(b.Orden) || 0));
+            if(finalizados.length === 0) { container.innerHTML = '<p style="color:var(--text-muted); text-align:center;">No hay capítulos finalizados aún.</p>'; return; }
+            finalizados.forEach(cap => {
+                const li = document.createElement('li'); li.setAttribute('data-id', cap.ID);
+                li.innerHTML = `<span><strong style="color:var(--primary); font-size:1.1rem;">${cap.Titulo || 'Sin título'}</strong></span> <span style="color:#cbd5e1; font-size:1.5rem;">≡</span>`; container.appendChild(li);
+            });
+            new Sortable(container, { animation: 150, onEnd: function() { const items = container.querySelectorAll('li'); items.forEach((item, index) => { const cap = DB.capitulos.find(c => c.ID == item.getAttribute('data-id')); if(cap) cap.Orden = index + 1; }); }});
+        }
+
+        async function guardarOrdenIndice() {
+            const btn = document.getElementById('btn-save-order'); btn.textContent = 'Guardando...'; btn.disabled = true;
+            const finalizados = DB.capitulos.filter(c => c.Estado_Kanban === 'Finalizado'); for(let cap of finalizados) { await fetchAPI("saveCapitulo", cap); }
+            alert("Orden guardado en la nube con éxito."); btn.textContent = 'Guardar Orden'; btn.disabled = false;
+        }
+
+        async function exportarLibro() {
+            const btn = document.getElementById('btn-exportar'); btn.textContent = 'Compilando...'; btn.disabled = true;
+            let finalizados = DB.capitulos.filter(c => c.Estado_Kanban === 'Finalizado'); finalizados.sort((a, b) => (Number(a.Orden) || 0) - (Number(b.Orden) || 0));
+            let htmlContent = `<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><title>Manuscrito</title><style>body { font-family: 'Georgia', serif; line-height: 1.8; max-width: 700px; margin: 40px auto; padding: 20px; color: #111; font-size: 18px;} h1 { text-align: center; page-break-before: always; margin-top: 3em; margin-bottom: 1.5em; font-size: 2em; text-transform: uppercase; letter-spacing: 2px;} p { text-indent: 1.5em; margin-bottom: 0.5em; text-align: justify; } .capitulo-content { margin-bottom: 4em; }</style></head><body>`;
+            for(let cap of finalizados) { htmlContent += `<h1>${cap.Titulo || 'Capítulo'}</h1><div class="capitulo-content">`; let text = cap.Contenido_HTML; if(text && text.length > 20 && !text.includes('<')) text = await fetchAPI("getCapituloContent", { fileId: text }); htmlContent += `${text || ''}</div>`; }
+            htmlContent += `</body></html>`;
+            const blob = new Blob([htmlContent], { type: 'text/html' }); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = 'Manuscrito_Compilado.html'; a.click(); URL.revokeObjectURL(url); btn.textContent = '📚 Exportar HTML'; btn.disabled = false;
+        }
+
+        function renderizarLineaTiempo() {
+            const contenedor = document.getElementById('timeline-render'); contenedor.innerHTML = '';
+            const eventos = [...DB.lineaTiempo].sort((a, b) => (a.Epoca || "").localeCompare(b.Epoca || ""));
+            if(eventos.length === 0) { contenedor.innerHTML = '<p style="text-align:center; color:var(--text-muted);">No hay eventos. Crea épocas en el Worldbuilding.</p>'; return; }
+            eventos.forEach(ev => {
+                const item = document.createElement('div'); item.className = 'timeline-item';
+                item.innerHTML = `<div class="timeline-content"><span class="timeline-epoch">${ev.Epoca}</span><h3 style="font-size:1.2rem;">${ev.Titulo}</h3><p style="color:var(--text-muted); font-size:0.95rem; margin-top:0.5rem;">${ev.Descripcion || ''}</p></div>`;
+                contenedor.appendChild(item);
+            });
+        }
+
+        function cambiarTabEditor(idTab, btnElement) {
+            document.querySelectorAll('.side-content').forEach(el => el.style.display = 'none');
+            document.querySelectorAll('.side-tab').forEach(el => { el.style.color = 'var(--text-muted)'; el.style.borderColor = 'transparent'; el.classList.remove('active');});
+            document.getElementById(idTab).style.display = 'block'; btnElement.style.color = 'var(--primary)'; btnElement.style.borderColor = 'var(--primary)'; btnElement.classList.add('active');
+        }
+
+        function calcularAnaliticas() {
+            const panel = document.getElementById('panel-metricas'); panel.innerHTML = '<p style="text-align:center; color:var(--text-muted);">Analizando texto...</p>';
+            setTimeout(() => {
+                const text = quill.getText().trim(); const wordCount = text.length > 0 ? text.split(/\s+/).length : 0; const readingTime = Math.ceil(wordCount / 200); 
+                const menciones = [];
+                DB.personajes.forEach(p => {
+                    let count = 0; const namesToSearch = [p.Nombre]; if(p.Apodos) p.Apodos.split(',').forEach(ap => namesToSearch.push(ap.trim()));
+                    namesToSearch.forEach(name => { if(!name) return; const regex = new RegExp("\\b" + name + "\\b", "gi"); const matches = text.match(regex); if(matches) count += matches.length; });
+                    if(count > 0) menciones.push({ nombre: p.Nombre, count });
+                });
+                menciones.sort((a,b) => b.count - a.count); 
+                const stopWords = new Set(["el","la","los","las","un","una","unos","unas","y","e","o","u","de","del","a","al","en","por","para","con","sin","sobre","tras","su","sus","mi","mis","tu","tus","que","qué","como","cómo","pero","mas","más","este","esta","estos","estas","ese","esa","esos","esas","aquel","aquella","se","me","te","le","les","nos","os","lo","las","ya","muy","mucho","poco","todo","nada","si","sí","no","ni","porque","cuando","donde","quien","quién","fue","era","es","son","soy","eres","ha","han","he","hay","había","tener","tenía","él","ella","ellos","ellas"]);
+                const words = text.toLowerCase().match(/\b[a-záéíóúñ]{4,}\b/g) || []; const freq = {}; words.forEach(w => { if(!stopWords.has(w)) freq[w] = (freq[w] || 0) + 1; });
+                const topWords = Object.entries(freq).sort((a,b) => b[1] - a[1]).slice(0, 5);
+
+                let html = `<div style="background:#f8fafc; padding:1.2rem; border-radius:12px; border:1px solid var(--border); box-shadow:var(--shadow-sm);"><h4 style="color:var(--text-main); margin-bottom:0.8rem; font-size:1rem; border-bottom:1px solid var(--border); padding-bottom:0.5rem;">Resumen de Lectura</h4><div style="display:flex; justify-content:space-between; font-weight:600; color:var(--primary);"><span>📝 ${wordCount} Palabras</span><span>⏱️ ~${readingTime} min</span></div></div>`;
+                if(menciones.length > 0) { html += `<div style="background:#f8fafc; padding:1.2rem; border-radius:12px; border:1px solid var(--border); box-shadow:var(--shadow-sm); margin-top:1rem;"><h4 style="color:var(--text-main); margin-bottom:0.8rem; font-size:1rem; border-bottom:1px solid var(--border); padding-bottom:0.5rem;">Personajes en Escena</h4><ul style="list-style:none; padding:0; font-size:0.95rem;">`; menciones.forEach(m => { html += `<li style="display:flex; justify-content:space-between; padding:0.4rem 0; border-bottom:1px dashed var(--border);"><span>👤 ${m.nombre}</span> <span style="font-weight:700; color:var(--accent);">${m.count}</span></li>`; }); html += `</ul></div>`; }
+                if(topWords.length > 0) { html += `<div style="background:#f8fafc; padding:1.2rem; border-radius:12px; border:1px solid var(--border); box-shadow:var(--shadow-sm); margin-top:1rem;"><h4 style="color:var(--text-main); margin-bottom:0.8rem; font-size:1rem; border-bottom:1px solid var(--border); padding-bottom:0.5rem;">Palabras Frecuentes</h4><ul style="list-style:none; padding:0; font-size:0.95rem;">`; topWords.forEach(w => { html += `<li style="display:flex; justify-content:space-between; padding:0.4rem 0; border-bottom:1px dashed var(--border);"><span style="text-transform:capitalize;">"${w[0]}"</span> <span style="font-weight:700; color:var(--text-muted);">${w[1]}</span></li>`; }); html += `</ul></div>`; }
+                panel.innerHTML = html;
+            }, 500); 
+        }
+
+        function renderizarGrafo() {
+            const nodes = []; const edges = []; const addedEntities = new Set();
+            DB.capitulos.forEach(cap => {
+                const capId = "cap_" + cap.ID; nodes.push({ id: capId, label: cap.Titulo || 'Capítulo', shape: 'box', color: '#cbd5e1', font: {color: '#1e293b', bold: true}, shadow: true });
+                let tags = []; try { tags = cap.Etiquetas_JSON ? JSON.parse(cap.Etiquetas_JSON) : []; } catch(e){}
+                tags.forEach(tag => {
+                    const tagId = tag.categoria + "_" + tag.entidad;
+                    if(!addedEntities.has(tagId)) {
+                        let color = '#f1f5f9'; if(tag.categoria === 'Personaje') color = '#dbeafe'; if(tag.categoria === 'Lugar') color = '#dcfce7'; if(tag.categoria === 'Trama') color = '#f3e8ff'; if(tag.categoria === 'Epoca') color = '#ffedd5';
+                        nodes.push({ id: tagId, label: tag.entidad, shape: 'dot', size: 16, color: color, font: {color: '#334155', bold:true}, shadow: true }); addedEntities.add(tagId);
+                    }
+                    edges.push({ from: capId, to: tagId, color: {color: '#cbd5e1', highlight: '#4f46e5'}, width: 2 });
+                });
+            });
+            const container = document.getElementById('network-container'); const data = { nodes: nodes, edges: edges };
+            const options = { physics: { barnesHut: { springLength: 150, gravitationalConstant: -4000 }, stabilization: true }, interaction: { hover: true, tooltipDelay: 200, zoomView: true } };
+            new vis.Network(container, data, options);
+        }
+
+        window.onload = () => { if(document.getElementById('pin-input').value) cargarDatosIniciales(); };
     </script>
 </body>
 </html>
