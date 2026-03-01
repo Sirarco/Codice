@@ -1,14 +1,20 @@
 {
-  "name": "El Códice Escritor",
-  "short_name": "Códice",
+  "name": "Chronos Enterprise",
+  "short_name": "Chronos",
   "start_url": "./index.html",
   "display": "standalone",
-  "background_color": "#1a1a2e",
-  "theme_color": "#4ecca3",
-  "orientation": "portrait",
+  "background_color": "#f8fafc",
+  "theme_color": "#4f46e5",
+  "orientation": "portrait-primary",
   "icons": [
     {
-      "src": "https://cdn-icons-png.flaticon.com/512/3596/3596045.png",
+      "src": "https://cdn-icons-png.flaticon.com/192/2082/2082856.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/2082/2082856.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
